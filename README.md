@@ -14,7 +14,7 @@ property IDUsuario:string read FIDUsuario write FIDUsuario;</b></p>
 <b>property DigitalCadastrada:string read FDigitalCadastrada write FDigitalCadastrada;</b></p>
 </p>
 </p>
-<b>Exemplo de Capturar Digital</b>
+<b><h1>Exemplo de Capturar Digital</h1></b></p>
 procedure TForm1.Button1Click(Sender: TObject);</p>
 begin</p>
   try</p>
@@ -32,7 +32,7 @@ begin</p>
      end;</p>
   end;</p>
   
-<b>Exemplo de Verificar Digital</b></p>
+<b><h1>Exemplo de Verificar Digital</h1></b></p>
 try</p>
     FingerKey.IDUsuario:=FDDigitaisIdUsuario.AsString;</p>
     FingerKey.DigitalCadastrada:=FDDigitaisDigitalUsuario.AsString;</p>
