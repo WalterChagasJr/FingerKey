@@ -7,9 +7,40 @@ Para dá o ponta pé inicial inclui, somente o USB FingKey Hamster (HFDU01/04/06
 O componente têm somente quatro métodos para o seu uso, os métodos são:</p>
 </p>
 <b>procedure InicializarDispositivo;</b></p>
-<b>procedure FinalizarDispositivo;</b></p>
-<b>procedure CadastrarDigital(UserID:string='');</b></p>
-<b>procedure VerificarDigital(UserID:string='');</b></p>
+<b>procedure CapturarDigital;</b></p>
+<b>procedure VerificarDigital;</b></p>
+<b>property DigitalCapturada:string read  FDigitalCapturada;</b></p>
+property IDUsuario:string read FIDUsuario write FIDUsuario;</b></p>
+<b>property DigitalCadastrada:string read FDigitalCadastrada write FDigitalCadastrada;</b></p>
 </p>
 </p>
+<b>Exemplo de Capturar Digital</b>
+procedure TForm1.Button1Click(Sender: TObject);</p>
+begin</p>
+  try</p>
+      FingerKey.IDUsuario:=edtIDUsuario.Text;</p>
+      FingerKey.CapturarDigital;</p>
+      FDDigitais.Append;</p>
+      FDDigitaisIdUsuario.AsString:=edtIDUsuario.Text;</p>
+      FDDigitaisDigitalUsuario.AsString:=FingerKey.DigitalCapturada;</p>
+      FDDigitais.Post;</p>  
+      MessageDlg('Digital cadastrada.', mtInformation, [mbOK],0);</p>     
+  except</p>
+     on E:Exception do</p>
+     begin</p>        
+        MessageDlg(e.Message, mtWarning, [mbOK],0);</p>
+     end;</p>
+  end;</p>
+  
+<b>Exemplo de Verificar Digital</b></p>
+try</p>
+    FingerKey.IDUsuario:=FDDigitaisIdUsuario.AsString;</p>
+    FingerKey.DigitalCadastrada:=FDDigitaisDigitalUsuario.AsString;</p>
+    FingerKey.VerificarDigital;</p>
+except</p>
+   on E:Exception do</p>
+   begin</p>
+      MessageDlg(e.Message, mtWarning, [mbOK],0);</p>
+   end;</p>
+end;</p>
 
