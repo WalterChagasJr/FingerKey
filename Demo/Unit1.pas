@@ -4,7 +4,11 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, FingerKey;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, FingerKey, Vcl.ExtCtrls,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  Data.DB, Vcl.Grids, Vcl.DBGrids, FireDAC.Comp.DataSet, FireDAC.Comp.Client,
+  FireDAC.Stan.StorageXML;
 
 type
   TForm1 = class(TForm)
@@ -14,11 +18,23 @@ type
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
+    FDDigitais: TFDMemTable;
+    FDDigitaisIdUsuario: TStringField;
+    FDDigitaisDigitalUsuario: TBlobField;
+    DBGrid1: TDBGrid;
+    DsDigital: TDataSource;
+    edtIDUsuario: TEdit;
+    btnExportarDados: TButton;
+    btnImportarDados: TButton;
+    OpenDialog1: TOpenDialog;
+    FDStanStorageXMLLink1: TFDStanStorageXMLLink;
     procedure FingerKeyInitizalization(status: string);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
+    procedure btnImportarDadosClick(Sender: TObject);
+    procedure btnExportarDadosClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -32,10 +48,30 @@ implementation
 
 {$R *.dfm}
 
+procedure TForm1.btnExportarDadosClick(Sender: TObject);
+begin
+    FDDigitais.SaveToFile(ExtractFilePath(Application.ExeName)+'DADOS.xml', sfXML);
+    MessageDlg('Dados exportados em: '+ExtractFilePath(Application.ExeName)+'DADOS.xml',  mtInformation, [mbOK],0);
+end;
+
+procedure TForm1.btnImportarDadosClick(Sender: TObject);
+begin
+    if OpenDialog1.Execute then
+    begin
+        FDDigitais.LoadFromFile(OpenDialog1.FileName, sfXML);
+    end;
+end;
+
 procedure TForm1.Button1Click(Sender: TObject);
 begin
   try
-      FingerKey.CadastrarDigital('adenilson');
+      FingerKey.IDUsuario:=edtIDUsuario.Text;
+      FingerKey.CapturarDigital;
+      FDDigitais.Append;
+      FDDigitaisIdUsuario.AsString:=edtIDUsuario.Text;
+      FDDigitaisDigitalUsuario.AsString:=FingerKey.DigitalCapturada;
+      FDDigitais.Post;
+      btnExportarDados.Enabled:= FDDigitais.RecordCount>0;
       MessageDlg('Digital cadastrada.', mtInformation, [mbOK],0);
       Button2.Enabled:=True;
   except
@@ -50,8 +86,9 @@ end;
 procedure TForm1.Button2Click(Sender: TObject);
 begin
    try
-        FingerKey.VerificarDigital('adenilson');
-        MessageDlg('Digital Reconhecida. Digital: '+FingerKey.DigitalCapturada, mtInformation, [mbOK],0);
+        FingerKey.IDUsuario:=FDDigitaisIdUsuario.AsString;
+        FingerKey.DigitalCadastrada:=FDDigitaisDigitalUsuario.AsString;
+        FingerKey.VerificarDigital;
    except
        on E:Exception do
        begin
@@ -67,11 +104,12 @@ begin
         Application.ProcessMessages;
         FingerKey.InicializarDispositivo;
         Button1.Enabled:=True;
+        Button2.Enabled :=True;
         Button4.Enabled:=True;
    except
        on E:Exception do
        begin
-          Button3.Enabled:=false;
+          Button3.Enabled:=true;
           Button1.Enabled:=false;
           Button2.Enabled:=false;
           Button4.Enabled:=false;
@@ -87,7 +125,6 @@ begin
         Button2.Enabled:=false;
         Button4.Enabled:=False;
         Application.ProcessMessages;
-        FingerKey.FinalizarDispositivo;
         Button3.Enabled:=True;
    except
        on E:Exception do

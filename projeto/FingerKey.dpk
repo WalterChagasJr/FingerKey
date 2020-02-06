@@ -35,9 +35,7 @@ requires
 contains
   FingerKey in '..\pas\FingerKey.pas',
   FingerKey.interfaces in '..\pas\FingerKey.interfaces.pas',
-  FingerKey.Factory in '..\pas\FingerKey.Factory.pas',
-  BSPInter in '..\pas\NitGen\BSPInter.pas',
-  FingerKeyHamster.ENBioBSP in '..\pas\NitGen\FingerKeyHamster.ENBioBSP.pas',
-  NBioAPI_Type in '..\pas\NitGen\NBioAPI_Type.pas';
+  model.NBioBSP in '..\pas\NitGen\model.NBioBSP.pas',
+  FingerKey.Factory in '..\pas\FingerKey.Factory.pas';
 
 end.

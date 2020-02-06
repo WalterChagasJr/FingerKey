@@ -15,7 +15,7 @@ end;
 implementation
 
 uses
-  FingerKeyHamster.ENBioBSP;
+  model.NBioBSP;
 
 { TFingerFactory }
 
@@ -32,7 +32,7 @@ end;
 
 function TFingerFactory.FingerKey: IFingerKey;
 begin
-   Result:=TFingerKeyHamster.New;
+   Result:=TNBioBSP.New;
 end;
 
 class function TFingerFactory.New: IFingerFactory;

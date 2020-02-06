@@ -3,6 +3,7 @@ unit FingerKey;
 interface
 
 uses
+  Winapi.Windows,
   System.SysUtils, System.Classes, FingerKey.interfaces,FingerKey.Factory;
 
 type
@@ -10,11 +11,12 @@ type
   TFingerKey = class(TComponent)
   private
     { Private declarations }
-    FEventoInitialization:TOnInitialization;
     FTipoDispotivos:TTiposDispotivos;
-    FFinge:IFingerKey;
-    FDigitalCadastrada:string;
+    FEventoInitialization:TOnInitialization;
+    FFinger:IFingerKey;
     FDigitalCapturada:string;
+    FIDUsuario:string;
+    FDigitalCadastrada:string;
   protected
     { Protected declarations }
   public
@@ -22,11 +24,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure InicializarDispositivo;
-    procedure FinalizarDispositivo;
-    procedure CadastrarDigital(UserID:string='');
-    procedure VerificarDigital(UserID:string='');
-    property DigitalCadastrada:string read FDigitalCadastrada;
+    procedure CapturarDigital;
+    procedure VerificarDigital;
     property DigitalCapturada:string read  FDigitalCapturada;
+    property IDUsuario:string read FIDUsuario write FIDUsuario;
+    property DigitalCadastrada:string read FDigitalCadastrada write FDigitalCadastrada;
   published
     { Published declarations }
     property TipoDeDispotivos: TTiposDispotivos read  FTipoDispotivos write FTipoDispotivos;
@@ -44,19 +46,21 @@ end;
 
 { TFingerKey }
 
-procedure TFingerKey.CadastrarDigital(UserID: string);
+procedure TFingerKey.CapturarDigital;
 begin
-   if FFinge<>nil then
+   if FFinger<>nil then
    begin
        if Assigned(FEventoInitialization) then
            FEventoInitialization('Cadastrando digital...');
-       if not FFinge.CadastrarDigital(UserID) then
-       begin
+       try
+           FFinger.IDUsuario:=FIDUsuario;
+           FFinger.CapturarDigital;
+           FDigitalCapturada:=FFinger.DigitalCapturada;
+       except
           if Assigned(FEventoInitialization) then
              FEventoInitialization('Não foi possível cadastrar a digital.');
           raise Exception.Create('Não foi possível cadastrar a digital.');
        end;
-       FDigitalCadastrada:=FFinge.DigitalUsuarioCadastrado;
    end
    else
       raise Exception.Create('Ainda não foi selecionado o dispositivo.');
@@ -65,7 +69,7 @@ end;
 constructor TFingerKey.Create(AOwner: TComponent);
 begin
    inherited;
-   FFinge:=nil;
+   FFinger:=nil;
 end;
 
 destructor TFingerKey.Destroy;
@@ -73,46 +77,26 @@ begin
   inherited;
 end;
 
-procedure TFingerKey.FinalizarDispositivo;
-begin
-   if FFinge<>nil then
-   begin
-      try
-         FFinge.FinalizarBSP;
-         if Assigned(FEventoInitialization) then
-            FEventoInitialization('Desconectado com sucesso.');
-      Except
-         on E:Exception do
-         begin
-             if Assigned(FEventoInitialization) then
-                FEventoInitialization(e.Message);
-             raise Exception.Create(e.Message);
-         end;
-      end;
-   end
-   else
-   begin
-      if Assigned(FEventoInitialization) then
-          FEventoInitialization('O dispositivo ainda não foi inicializado.');
-      raise Exception.Create('O dispositivo ainda não foi inicializado.');
-   end;
-end;
-
 procedure TFingerKey.InicializarDispositivo;
 begin
    case FTipoDispotivos of
-     fkNenhum: FFinge:=nil;
+     fkNenhum: FFinger:=nil;
      fkHamsterNitgen:
      begin
-        FFinge :=TFingerFactory.New.FingerKey;
+        try
+           FFinger :=TFingerFactory.New.FingerKey;
+        except
+            on E:Exception do
+            begin
+               raise Exception.Create(e.Message);
+            end;
+        end;
      end;
    end;
-   if FFinge<>nil then
+   if FFinger<>nil then
    begin
       try
-          FFinge.OnEventoInitialization(FEventoInitialization);
-          FFinge.InicializarBSP;
-          FFinge.AbrirDispositivoBSP;
+          FFinger.OnStatus(FEventoInitialization);
       except
           on E:Exception do
           begin
@@ -127,19 +111,25 @@ begin
       raise Exception.Create('Ainda não foi selecionado o dispositivo.');
 end;
 
-procedure TFingerKey.VerificarDigital(UserID: string);
+procedure TFingerKey.VerificarDigital;
 begin
-   if FFinge<>nil then
+   if FFinger<>nil then
    begin
        if Assigned(FEventoInitialization) then
            FEventoInitialization('Verificando digital...');
-       if not FFinge.VerificarDigital(UserID) then
-       begin
-           if Assigned(FEventoInitialization) then
-              FEventoInitialization('Não foi possível verificar a digital.');
-           raise Exception.Create('Não foi possível verificar a digital.');
+       try
+          FFinger.IDUsuario:=FIDUsuario;
+          FFinger.DigitalCadastrada:=FDigitalCadastrada;
+          FFinger.VerificarDigital;
+          FDigitalCapturada:=FFinger.DigitalCapturada;
+       except
+          on E:Exception do
+          begin
+             if Assigned(FEventoInitialization) then
+              FEventoInitialization(e.Message);
+           raise Exception.Create(e.Message);
+          end;
        end;
-       FDigitalCapturada:=FFinge.DigitalUsuario;
    end
    else
       raise Exception.Create('Ainda não foi selecionado o dispositivo.');
